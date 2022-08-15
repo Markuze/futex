@@ -28,7 +28,7 @@
 
        static uint32_t *futex1, *futex2, *iaddr;
 
-       static int
+       int
        futex(uint32_t *uaddr, int futex_op, uint32_t val,
              const struct timespec *timeout, uint32_t *uaddr2, uint32_t val3)
        {
@@ -39,7 +39,7 @@
        /* Acquire the futex pointed to by 'futexp': wait for its value to
           become 1, and then set the value to 0. */
 
-       static void
+       void
        fwait(uint32_t *futexp)
        {
            long s;
@@ -71,7 +71,7 @@
           has the value 0, set its value to 1 and the wake any futex waiters,
           so that if the peer is blocked in fwait(), it can proceed. */
 
-       static void
+       void
        fpost(uint32_t *futexp)
        {
            long s;

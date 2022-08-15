@@ -19,6 +19,7 @@
 #include <bits/fcntl.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <execinfo.h>
 #include <linux/futex.h>      /* Definition of FUTEX_* constants */
 #include <sys/syscall.h>      /* Definition of SYS_* constants */
 //#include <unistd.h>
@@ -30,12 +31,22 @@ int __thread (*_open64)(const char * pathname, int flags, ...) = NULL;
 
 long (*_syscall)(long number, ...) = NULL;
 
+/* TODO: TLS */ void *buffer[1024];
 long syscall(long sysnum, u_int32_t *uaddr, int futex_op, u_int32_t val,
 		const struct timespec *timeout,   /* or: u_int32_t val2 */
 		u_int32_t *uaddr2, u_int32_t val3) 
 {
+	char **strings = NULL;
+	int nptrs = backtrace(buffer, 1024);
+
 	if (_syscall == NULL)
 		_syscall = (long (*)(long number, ...)) dlsym(RTLD_NEXT, "syscall");
+
+	strings = backtrace_symbols(buffer, nptrs);
+	for (int j = 0; j < nptrs; j++)
+		printf("%s\n", strings[j]);
+
+        free(strings);
 
 	printf("syscall :) [%ld] %s\n", sysnum, (sysnum == SYS_futex) ? "Futex": "Other");
 	return _syscall(sysnum, uaddr, futex_op, val, timeout, uaddr2, val3);
