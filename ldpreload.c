@@ -19,19 +19,20 @@
 #include <bits/fcntl.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
+//#include <unistd.h>
 #include <execinfo.h>
 #include <linux/futex.h>      /* Definition of FUTEX_* constants */
 #include <sys/syscall.h>      /* Definition of SYS_* constants */
-//#include <unistd.h>
+
+#include "get_addr.h"
 
 extern int errorno;
 
-int __thread (*_open)(const char * pathname, int flags, ...) = NULL;
-int __thread (*_open64)(const char * pathname, int flags, ...) = NULL;
+static long (*_syscall)(long number, ...) = NULL;
 
-long (*_syscall)(long number, ...) = NULL;
+static __thread void *  buffer[1024];
 
-/* TODO: TLS */ void *buffer[1024];
 long syscall(long sysnum, u_int32_t *uaddr, int futex_op, u_int32_t val,
 		const struct timespec *timeout,   /* or: u_int32_t val2 */
 		u_int32_t *uaddr2, u_int32_t val3) 
@@ -44,32 +45,10 @@ long syscall(long sysnum, u_int32_t *uaddr, int futex_op, u_int32_t val,
 
 	strings = backtrace_symbols(buffer, nptrs);
 	for (int j = 0; j < nptrs; j++)
-		printf("%s\n", strings[j]);
+		printf("\t[%d]%s\n", j, strings[j]);
 
         free(strings);
 
-	printf("syscall :) [%ld] %s\n", sysnum, (sysnum == SYS_futex) ? "Futex": "Other");
+	printf("\nsyscall :) [%ld] %s\n", sysnum, (sysnum == SYS_futex) ? "Futex": "Other");
 	return _syscall(sysnum, uaddr, futex_op, val, timeout, uaddr2, val3);
-}
-
-int open(const char * pathname, int flags, mode_t mode)
-{
-    if (NULL == _open) {
-        _open = (int (*)(const char * pathname, int flags, ...)) dlsym(RTLD_NEXT, "open");
-    }
-    if(flags & O_CREAT)
-        return _open(pathname, flags | O_NOATIME, mode);
-    else
-        return _open(pathname, flags | O_NOATIME, 0);
-}
-
-int open64(const char * pathname, int flags, mode_t mode)
-{
-    if (NULL == _open64) {
-        _open64 = (int (*)(const char * pathname, int flags, ...)) dlsym(RTLD_NEXT, "open64");
-    }
-    if(flags & O_CREAT)
-        return _open64(pathname, flags | O_NOATIME, mode);
-    else
-        return _open64(pathname, flags | O_NOATIME, 0);
 }
