@@ -8,7 +8,9 @@ gcc -Wall -rdynamic demo/futex_demo.c
 [ $? -ne 0 ] && exit
 gcc -fPIC -c -o ldpreload.o ldpreload.c
 [ $? -ne 0 ] &&  exit
-gcc -shared -o ldpreload.so ldpreload.o -ldl
+gcc -fPIC -c -o getaddr.o get_addr.c
+[ $? -ne 0 ] &&  exit
+gcc -shared -o ldpreload.so ldpreload.o getaddr.o -ldl
 [ $? -ne 0 ] && exit
 
 LD_PRELOAD=$PWD/ldpreload.so ./a.out

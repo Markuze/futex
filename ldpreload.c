@@ -31,12 +31,14 @@ extern int errorno;
 
 static long (*_syscall)(long number, ...) = NULL;
 
-static __thread void *  buffer[1024];
+static __thread void *buffer[1024];
+static __thread unsigned long offset = 0;
 
 long syscall(long sysnum, u_int32_t *uaddr, int futex_op, u_int32_t val,
 		const struct timespec *timeout,   /* or: u_int32_t val2 */
 		u_int32_t *uaddr2, u_int32_t val3) 
 {
+	unsigned long addr = 0;
 	char **strings = NULL;
 	int nptrs = backtrace(buffer, 1024);
 
@@ -44,8 +46,11 @@ long syscall(long sysnum, u_int32_t *uaddr, int futex_op, u_int32_t val,
 		_syscall = (long (*)(long number, ...)) dlsym(RTLD_NEXT, "syscall");
 
 	strings = backtrace_symbols(buffer, nptrs);
+
+	addr = get_addr();
+
 	for (int j = 0; j < nptrs; j++)
-		printf("\t[%d]%s\n", j, strings[j]);
+		offset += snprintf((char *)(addr + offset), 256,"\t[%d]%s\n", j, strings[j]);
 
         free(strings);
 
