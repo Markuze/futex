@@ -13,6 +13,8 @@ gcc -fPIC -c -o getaddr.o get_addr.c
 gcc -shared -o ldpreload.so ldpreload.o getaddr.o -ldl
 [ $? -ne 0 ] && exit
 
+rm -rf /mnt/ramfs/*
+
 LD_PRELOAD=$PWD/ldpreload.so ./a.out
 
 #Also see here
