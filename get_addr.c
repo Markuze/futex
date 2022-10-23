@@ -65,7 +65,7 @@ void write_buffer(const char* str, unsigned int size)
 		if (write_addr[cpu].addr == 0) {
 			unsigned long addr = get_per_cpu_addr(cpu);
 			if (addr > 0) {
-				printf("Returning %llx on %d\n", addr, cpu);
+				//printf("Returning %llx on %d\n", addr, cpu);
 				//open guarantees atomicity here no need to cmpxhg
 				write_addr[cpu].addr = addr;
 			}
@@ -75,8 +75,8 @@ void write_buffer(const char* str, unsigned int size)
 	}
 
 	offset = __atomic_add_fetch(&write_addr[cpuid].offset, size, __ATOMIC_RELAXED);
-	if (offset < MMAP_SIZE) {
-		printf("[%d]> %llx [%lu, %u]: %s", cpuid, (write_addr[cpuid].addr + offset -size), offset, size, str);
+	if (offset < (MMAP_SIZE -1)) {
+		//printf("[%d]> %llx [%lu, %u]: %s", cpuid, (write_addr[cpuid].addr + offset -size), offset, size, str);
 		snprintf((char *)(write_addr[cpuid].addr + offset -size), size + 1,"%s", str);
 	}
 }

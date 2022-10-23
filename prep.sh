@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DIR=/mnt/ramfs/
-SIZE='4G'
+SIZE='32G'
 
 sudo umount ${DIR}
 sudo mkdir -p ${DIR}
